@@ -1,0 +1,8 @@
+prefix=/home/hao/hao_learn/devel
+
+Name: emplanner
+Description: Description of emplanner
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs nav_msgs roscpp path_planning_msgs

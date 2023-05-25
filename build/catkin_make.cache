@@ -1,0 +1,2 @@
+emplanner:path_record:ros
+-DCATKIN_DEVEL_PREFIX=/home/hao/hao_learn/devel -DCMAKE_INSTALL_PREFIX=/home/hao/hao_learn/install -G Unix Makefiles

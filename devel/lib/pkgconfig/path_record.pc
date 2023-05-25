@@ -1,0 +1,8 @@
+prefix=/home/hao/hao_learn/devel
+
+Name: path_record
+Description: Description of path_record
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs nav_msgs roscpp
