@@ -257,33 +257,6 @@ visualization_msgs_generate_messages_cpp/fast:
 	cd /home/hao/hao_learn/build && $(MAKE) -f emplanner/CMakeFiles/visualization_msgs_generate_messages_cpp.dir/build.make emplanner/CMakeFiles/visualization_msgs_generate_messages_cpp.dir/build
 .PHONY : visualization_msgs_generate_messages_cpp/fast
 
-lib/reference_line_smooth.o: lib/reference_line_smooth.cpp.o
-
-.PHONY : lib/reference_line_smooth.o
-
-# target to build an object file
-lib/reference_line_smooth.cpp.o:
-	cd /home/hao/hao_learn/build && $(MAKE) -f emplanner/CMakeFiles/main.dir/build.make emplanner/CMakeFiles/main.dir/lib/reference_line_smooth.cpp.o
-.PHONY : lib/reference_line_smooth.cpp.o
-
-lib/reference_line_smooth.i: lib/reference_line_smooth.cpp.i
-
-.PHONY : lib/reference_line_smooth.i
-
-# target to preprocess a source file
-lib/reference_line_smooth.cpp.i:
-	cd /home/hao/hao_learn/build && $(MAKE) -f emplanner/CMakeFiles/main.dir/build.make emplanner/CMakeFiles/main.dir/lib/reference_line_smooth.cpp.i
-.PHONY : lib/reference_line_smooth.cpp.i
-
-lib/reference_line_smooth.s: lib/reference_line_smooth.cpp.s
-
-.PHONY : lib/reference_line_smooth.s
-
-# target to generate assembly for a file
-lib/reference_line_smooth.cpp.s:
-	cd /home/hao/hao_learn/build && $(MAKE) -f emplanner/CMakeFiles/main.dir/build.make emplanner/CMakeFiles/main.dir/lib/reference_line_smooth.cpp.s
-.PHONY : lib/reference_line_smooth.cpp.s
-
 lib/routing.o: lib/routing.cpp.o
 
 .PHONY : lib/routing.o
@@ -357,9 +330,6 @@ help:
 	@echo "... main"
 	@echo "... visualization_msgs_generate_messages_lisp"
 	@echo "... visualization_msgs_generate_messages_cpp"
-	@echo "... lib/reference_line_smooth.o"
-	@echo "... lib/reference_line_smooth.i"
-	@echo "... lib/reference_line_smooth.s"
 	@echo "... lib/routing.o"
 	@echo "... lib/routing.i"
 	@echo "... lib/routing.s"

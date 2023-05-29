@@ -4,7 +4,6 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/hao/hao_learn/src/emplanner/lib/reference_line_smooth.cpp" "/home/hao/hao_learn/build/emplanner/CMakeFiles/main.dir/lib/reference_line_smooth.cpp.o"
   "/home/hao/hao_learn/src/emplanner/lib/routing.cpp" "/home/hao/hao_learn/build/emplanner/CMakeFiles/main.dir/lib/routing.cpp.o"
   "/home/hao/hao_learn/src/emplanner/src/main.cpp" "/home/hao/hao_learn/build/emplanner/CMakeFiles/main.dir/src/main.cpp.o"
   )
@@ -21,6 +20,8 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/opt/ros/noetic/include"
   "/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
+  "/usr/local/include/eigen3"
+  "/usr/local/include/osqp"
   )
 
 # Targets to which this target links.

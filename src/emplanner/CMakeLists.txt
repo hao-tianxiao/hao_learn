@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.1)
 project(emplanner)
 
+set (CMAKE_CXX_STANDARD 11)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
@@ -16,9 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   visualization_msgs
 )
-find_package(OsqpEigen REQUIRED)
-add_executable(example example.cpp)
-target_link_libraries(example OsqpEigen::OsqpEigen)
+find_package(OsqpEigen)
+find_package(Eigen3)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -128,6 +128,7 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
 )
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -142,7 +143,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(main src/main.cpp lib/routing.cpp lib/reference_line_smooth.cpp)
+add_executable(main src/main.cpp lib/routing.cpp )
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,6 +158,7 @@ add_executable(main src/main.cpp lib/routing.cpp lib/reference_line_smooth.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(main
   ${catkin_LIBRARIES}
+  OsqpEigen::OsqpEigen
 )
 
 #############

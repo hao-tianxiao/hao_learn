@@ -306,6 +306,9 @@ EMPY_EXECUTABLE:FILEPATH=EMPY_EXECUTABLE-NOTFOUND
 //Empy script
 EMPY_SCRIPT:STRING=/usr/lib/python3/dist-packages/em.py
 
+//The directory containing a CMake configuration file for Eigen3.
+Eigen3_DIR:PATH=/usr/local/share/eigen3/cmake
+
 //Path to a library.
 GMOCK_LIBRARY:FILEPATH=GMOCK_LIBRARY-NOTFOUND
 
@@ -351,6 +354,9 @@ LSB_RELEASE_EXECUTABLE:FILEPATH=/usr/bin/lsb_release
 
 //Path to a program.
 NOSETESTS:FILEPATH=/usr/bin/nosetests3
+
+//The directory containing a CMake configuration file for OsqpEigen.
+OsqpEigen_DIR:PATH=/usr/local/lib/cmake/OsqpEigen
 
 //Path to a program.
 PYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3
@@ -493,6 +499,9 @@ message_runtime_DIR:PATH=/opt/ros/noetic/share/message_runtime/cmake
 
 //The directory containing a CMake configuration file for nav_msgs.
 nav_msgs_DIR:PATH=/opt/ros/noetic/share/nav_msgs/cmake
+
+//The directory containing a CMake configuration file for osqp.
+osqp_DIR:PATH=/usr/local/lib/cmake/osqp
 
 //The directory containing a CMake configuration file for path_planning_msgs.
 path_planning_msgs_DIR:PATH=path_planning_msgs_DIR-NOTFOUND

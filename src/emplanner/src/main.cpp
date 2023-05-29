@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "../include/routing.h"
-#include "../include/qp_constrution.h"
+
 // using namespace emplanner;
 // using namespace qp_constrution;
 void emplanner::odomCallBack(const nav_msgs::Odometry::ConstPtr odometryMsg)
@@ -24,49 +24,59 @@ void emplanner::odomCallBack(const nav_msgs::Odometry::ConstPtr odometryMsg)
     //definite the range of reference line smoothing
     definite_reference_line_range(nearest_index, global_path);
     std::cout<<"nearest_index"<< nearest_index<<std::endl;
-    // std::cout<<"front_point_index"<< front_point_index<<std::endl;
-    // std::cout<<"back_point_index"<< back_point_index<<std::endl;
+    std::cout<<"front_point_index"<< front_point_index<<std::endl;
+    std::cout<<"back_point_index"<< back_point_index<<std::endl;
 
 
     //calculate related parameters
+
     // allocate QP problem matrices and vectores
-    Eigen::SparseMatrix<double> hessian(2, 2);      //P: n*n正定矩阵,必须为稀疏矩阵SparseMatrix
-    Eigen::VectorXd gradient(2);                    //Q: n*1向量
-    Eigen::SparseMatrix<double> linearMatrix(2, 2); //A: m*n矩阵,必须为稀疏矩阵SparseMatrix
-    Eigen::VectorXd lowerBound(2);                  //L: m*1下限向量
-    Eigen::VectorXd upperBound(2);                  //U: m*1上限向量
+    Eigen::SparseMatrix<double> hessian(362, 362);    //P: n*n正定矩阵,必须为稀疏矩阵SparseMatrix
+    Eigen::VectorXd gradient(362);                    //Q: n*1向量
+    Eigen::SparseMatrix<double> linearMatrix(362, 362); //A: m*n矩阵,必须为稀疏矩阵SparseMatrix
+    Eigen::VectorXd lowerBound(362);                  //L: m*1下限向量
+    Eigen::VectorXd upperBound(362);                  //U: m*1上限向量
+    
+            //     std::cout << "lowerBound:" << std::endl
+            //   << lowerBound.rows() << std::endl
+            //   << lowerBound.cols() << std::endl;
+    w_init();
+    A1_construction();
+    A2_construction();
+    A3_construction();
+    h_small_construction();
+    f_construction(gradient);
+    p_construction(linearMatrix);
+    lb_construction(lowerBound);
+    ub_construction(upperBound);
+    H_construction(hessian);
 
-    hessian.insert(0, 0) = 2.0; //注意稀疏矩阵的初始化方式,无法使用<<初始化
-    hessian.insert(1, 1) = 2.0;
-    // std::cout << "hessian:" << std::endl
-    //           << hessian << std::endl;
-    gradient << -2, -2;
-    linearMatrix.insert(0, 0) = 1.0; //注意稀疏矩阵的初始化方式,无法使用<<初始化
-    linearMatrix.insert(1, 1) = 1.0;
-    // std::cout << "linearMatrix:" << std::endl
-    //           << linearMatrix << std::endl;
-    lowerBound << 1, 1;
-    upperBound << 1.5, 1.5;
 
-    // instantiate the solver
+    // // instantiate the solver
     OsqpEigen::Solver solver;
 
-    // settings
+    //             std::cout << "lowerBound" << std::endl
+    // << lowerBound << std::endl; //输出为m*1的向量
+    //             std::cout << "upperBound" << std::endl
+    // << upperBound << std::endl; //输出为m*1的向量
+
     solver.settings()->setVerbosity(false);
     solver.settings()->setWarmStart(true);
 
     // set the initial data of the QP solver
-    solver.data()->setNumberOfVariables(2);   //变量数n
-    solver.data()->setNumberOfConstraints(2); //约束数m
+    solver.data()->setNumberOfVariables(362);   //变量数n
+    solver.data()->setNumberOfConstraints(362); //约束数m
     solver.data()->setHessianMatrix(hessian);
     solver.data()->setGradient(gradient);
     solver.data()->setLinearConstraintsMatrix(linearMatrix);
     solver.data()->setLowerBound(lowerBound);
     solver.data()->setUpperBound(upperBound);
 
-    // instantiate the solver
-    solver.initSolver();
+    // std::cout << "hessian" << std::endl
+    // << hessian << std::endl; //输出为m*1的向量
 
+    // // // instantiate the solver
+    solver.initSolver();
 
     Eigen::VectorXd QPSolution;
 
@@ -74,11 +84,25 @@ void emplanner::odomCallBack(const nav_msgs::Odometry::ConstPtr odometryMsg)
     solver.solve();
 
     QPSolution = solver.getSolution();
-    std::cout << "QPSolution" << std::endl
-              << QPSolution << std::endl; //输出为m*1的向量
+    // std::cout << "QPSolution" << std::endl
+    //           << QPSolution[1] << std::endl//输出为m*1的向量
+    //           << QPSolution[2] << std::endl//输出为m*1的向量
+    //           << QPSolution[362] << std::endl; //输出为m*1的向量
 
-    //Visual local path
-    // rviz_road(this->marker_pub3, local_path);
+    local_path.resize(181);
+    for(int i=0, j=0; i<180, j<360; i++, j+=2)
+    {
+        local_path[i].x = QPSolution[j];
+        local_path[i].y = QPSolution[j+1];
+            std::cout << "local_path[i].x" << std::endl
+            << local_path[0].x << std::endl; //输出为m*1的向量
+            std::cout << "local_path[i].y" << std::endl
+            << local_path[0].y << std::endl; //输出为m*1的向量
+    }
+
+    // //Visual local path
+    rviz_road(this->marker_pub3, local_path);
+    local_path.clear();
 }
 
 
@@ -102,9 +126,9 @@ void emplanner::nodeStart(int argc, char **argv)
 
 
     this->marker_pub = nh.advertise<visualization_msgs::Marker>("road_rviz", 1);
-    this->marker_pub1 = nh.advertise<visualization_msgs::MarkerArray>("road_rviz2", 1);
-    this->marker_pub2 = nh.advertise<visualization_msgs::MarkerArray>("road_rviz3", 1);
-    // this->marker_pub3 = nh.advertise<visualization_msgs::Marker>("road_rviz4", 1);
+    // this->marker_pub1 = nh.advertise<visualization_msgs::MarkerArray>("road_rviz2", 1);
+    // this->marker_pub2 = nh.advertise<visualization_msgs::MarkerArray>("road_rviz3", 1);
+    this->marker_pub3 = nh.advertise<visualization_msgs::Marker>("road_rviz4", 1);
     this->odom = nh.subscribe("/odom", 1, &emplanner::odomCallBack, this);
     // this->qp_constrcution = nh.subscribe("/rosout", 1, &emplanner::qp_callback, this);
     ros::spin();

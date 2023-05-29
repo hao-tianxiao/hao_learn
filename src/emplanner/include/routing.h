@@ -23,7 +23,6 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <tf/tf.h>
 #include <ros/ros.h>
-#include "../include/qp_constrution.h"
 
 
 class waypoint
@@ -71,24 +70,64 @@ public:
     int find_projection_point(std::vector<waypoint> global_path,nav_msgs::Odometry::ConstPtr odometryMsg);
     void definite_reference_line_range(int projection_point_index, std::vector<waypoint> global_path);
     
-    void H_construction();
+    void H_construction(Eigen::SparseMatrix<double> &hessian);
     void A1_construction();
     void A2_construction();
     void A3_construction();
     void h_small_construction();
-    void f_construction();
-    void ub_construction();
-    void lb_construction();
+    void f_construction(Eigen::VectorXd &gradient);
+    void p_construction(Eigen::SparseMatrix<double> &p);
+    void lb_construction(Eigen::VectorXd &lowerBound);
+    void ub_construction(Eigen::VectorXd &upperBound);
+
+    void w_init();
     
     
     int projection_point_index = 0;
     int front_point_index;
     int back_point_index;
     double min_distance;
+    int flag_global;
 
-    double w_smooth = 1;
-    double w_length = 1;
-    double w_reference = 1;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> w_smooth;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> w_length;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> w_reference;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> A_1;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> A_1_T;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> A_2;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> A_2_T;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> A_3;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> A_3_T;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> h_small;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> h_small_T;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> H;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> p;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> f_T;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> f;
+    Eigen::VectorXd lb;
+    Eigen::VectorXd ub;
+    // Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> lb;
+    // Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> ub;
+
+    // Eigen::Matrix<int, 362, 362> w_smooth;
+    // Eigen::Matrix<int, 362, 362> w_length;
+    // Eigen::Matrix<int, 362, 362> w_reference;
+    // Eigen::Matrix<int, 362, 358> A_1;
+    // Eigen::Matrix<int, 362, 358> A_1_T;
+    // Eigen::Matrix<int, 362, 360> A_2;
+    // Eigen::Matrix<int, 362, 360> A_2_T;
+    // Eigen::Matrix<int, 362, 362> A_3;
+    // Eigen::Matrix<int, 362, 362> A_3_T;
+    // Eigen::Matrix<int, 362, 1> h_small;
+    // Eigen::Matrix<int, 362, 1> h_small_T;
+    // Eigen::Matrix<int, 362, 362> H;
+    // Eigen::Matrix<int, 362, 362> p;
+    // Eigen::Matrix<int, 1, 362> f_T;
+    // Eigen::VectorXd f;
+
+
+
+
 };
 
 void readTraje(std::vector<waypoint> &vecTraj,const std::string &fileName);

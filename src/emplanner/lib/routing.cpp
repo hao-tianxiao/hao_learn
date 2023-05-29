@@ -1,6 +1,15 @@
 #include "../include/routing.h"
 #include <iomanip>
 #include <algorithm>
+// osqp-eigen
+#include "OsqpEigen/OsqpEigen.h"
+// eigen
+#include <Eigen/Dense>
+#include <iostream>
+
+
+
+
 
 void readTraje(std::vector<waypoint> &vecTraj,const std::string &fileName){
     std::ifstream infile(fileName,std::ios::in);
@@ -353,18 +362,22 @@ void emplanner::definite_reference_line_range(int projection_point_index, std::v
 {
     if(projection_point_index > 30 && global_path.size() - projection_point_index > 150)
     {
+        flag_global = 1;
         front_point_index = projection_point_index - 30;
         back_point_index = projection_point_index + 150;
     }else if(projection_point_index <= 30 && global_path.size() - projection_point_index > 150)
     {
+        flag_global = 1;
         front_point_index = 0;
-        back_point_index = 181 - projection_point_index;
+        back_point_index = 180;
     }else if(projection_point_index > 30 && global_path.size() - projection_point_index <= 150)
     {
+        flag_global = 1;
         front_point_index = (global_path.size() - 181);
         back_point_index = global_path.size();
     }else
     {
+        flag_global = 0;
         std::cout<<"the global waypoints is too short!"<<std::endl;
     }
 }
@@ -376,37 +389,141 @@ double emplanner::calcDistance(const double start, const double& end)
     return sqrt(x*x+ y*y);
 }
 
-
-
-void emplanner::H_construction()
+void emplanner::w_init()
 {
+    w_smooth = Eigen::MatrixXd::Zero(362, 362);
+    w_length = Eigen::MatrixXd::Zero(362, 362);
+    w_reference = Eigen::MatrixXd::Zero(362, 362);
+    for(int i=0; i<361; i++)
+    {
+        w_smooth(i, i) = 1;
+        w_length(i, i) = 1;
+        w_reference(i, i) = 1;
+    }
+    // std::cout<<"w_smooth"<< w_smooth<<std::endl;
+}
+
+void emplanner::H_construction(Eigen::SparseMatrix<double> &hessian)
+{
+    H = Eigen::MatrixXd::Zero(362, 362);
+    H = 2*(w_smooth*A_1_T*A_1+w_length*A_2_T*A_2+w_reference*A_3_T*A_3);
+    for(int i=0; i<361; i++)
+    {
+        for(int j=0; j<361; j++)
+        {
+            hessian.insert(i,j)= H(i,j);
+        }
+    }
+    // std::cout<<"H.rows"<< H.rows()<<std::endl;
+    // std::cout<<"H.cols"<< H.cols()<<std::endl;
 
 }
+
 void emplanner::A1_construction()
-{
-
+{   
+    A_1_T = Eigen::MatrixXd::Zero(362, 358);
+    A_1 = Eigen::MatrixXd::Zero(358, 362);
+    for(int i=0; i<358; i+=2)
+    {
+        A_1_T(i,i) = 1;
+        A_1_T(i+2,i) = -2;
+        A_1_T(i+4,i) = 1;
+        A_1_T(i+1,i+1) = 1;
+        A_1_T(i+3,i+1) = -2;
+        A_1_T(i+5,i+1) = 1;
+    }
+    A_1 = A_1_T.transpose();
+    //     std::cout << "A_1_T" << std::endl
+    // << A_1_T << std::endl; //输出为m*1的向量
 }
+
 void emplanner::A2_construction()
 {
-    
-}
-void emplanner::A3_construction()
-{
+    A_2_T = Eigen::MatrixXd::Zero(362, 360);
+    A_2 = Eigen::MatrixXd::Zero(360, 362);
+    for(int i=0; i<360; i+=2)
+    {
+        A_2_T(i,i) = 1;
+        A_2_T(i+2,i) = -1;
+        A_2_T(i+1,i+1) = 1;
+        A_2_T(i+3,i+1) = -1;
+    }
+    A_2 = A_2_T.transpose();
 
 }
+
+void emplanner::A3_construction()
+{
+    A_3_T = Eigen::MatrixXd::Zero(362, 362);
+    A_3 = Eigen::MatrixXd::Zero(362, 362);
+    for(int i=0; i<361; i++)
+    {
+        A_3(i,i) = 1;
+    }
+    // A_3 = A_3_T.transpose();
+}
+
 void emplanner::h_small_construction()
 {
 
+    h_small = Eigen::MatrixXd::Zero(362, 1);
+    h_small_T = Eigen::MatrixXd::Zero(1, 362);
+    if(flag_global)
+    {
+        for(int i=0; i<362; i+=2)
+        {
+            h_small(i,0)=-2*global_path[front_point_index + i/2].x;
+            h_small(i+1,0)=-2*global_path[front_point_index + i/2].y;
+        //     std::cout << "global_path[front_point_index + i/2].x" << std::endl
+        //             << global_path[front_point_index + i/2].x << std::endl//输出为m*1的向量
+        //             << "global_path[front_point_index + i/2].y" << std::endl//输出为m*1的向量
+        //             << global_path[front_point_index + i/2].y << std::endl//输出为m*1的向量
+        //             << "ront_point_index + i/2" << std::endl//输出为m*1的向量
+        //             << front_point_index + i/2 << std::endl; //输出为m*1的向量
+        }
+    }
+    h_small_T = h_small.transpose();
 }
-void emplanner::f_construction()
-{
 
+void emplanner::f_construction(Eigen::VectorXd &gradient)
+{
+    f_T = Eigen::MatrixXd::Zero(1, 362);
+    f = Eigen::MatrixXd::Zero(362, 1);
+    f_T = w_reference*h_small_T;
+    f = f_T.transpose();
+    for(int i=0; i<361; i++)
+    {
+        gradient(i,0) = f(i,0);
+    }
 }
-void emplanner::ub_construction()
+void emplanner::p_construction(Eigen::SparseMatrix<double> &p)
 {
-
+    for(int i=0; i<361; i++)
+    {
+        p.insert(i,i) = 1;
+    }
 }
-void emplanner::lb_construction()
-{
+void emplanner::lb_construction(Eigen::VectorXd &lowerBound)
+{   
+// lowerBound.fill(-1);
+    for(int i=0; i<362; i+=2)
+    {
+        // lowerBound[i] = global_path[front_point_index + i/2].x - 0.21;
+        // lowerBound[i+1] = global_path[front_point_index + i/2].y - 0.21;
+        lowerBound[i] = global_path[front_point_index + i/2].x - 0.1;
+        lowerBound[i+1] = global_path[front_point_index + i/2].y - 0.1;
+    }
 
+}   
+
+void emplanner::ub_construction(Eigen::VectorXd &upperBound)
+{
+// upperBound.fill(1);
+    for(int i=0; i<362; i+=2)
+    {
+        // upperBound[i] = global_path[front_point_index + i/2].x + 0.21;
+        // upperBound[i+1] = global_path[front_point_index + i/2].y + 0.21;
+        upperBound[i] = global_path[front_point_index + i/2].x + 0.1;
+        upperBound[i+1] = global_path[front_point_index + i/2].y + 0.1;
+    }
 }
